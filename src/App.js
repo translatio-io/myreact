@@ -1,25 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import TopNavbar from './components/TopNavbar';
+import SideNavmenu from './components/SideNavmenu';
+import SideNavConDash from './components/SideNavConDash';
+import SideNavConSettings from './components/SideNavConSettings';
+import Footer from './components/Footer';
+import { Routes, Route, Link } from 'react-router-dom';
+import Home from './components/Home';
+import About from './components/About';
+import Contact from './components/Contact';
+import { ReactKeycloakProvider } from "@react-keycloak/web";
+import keycloak from "./Keycloak"
+import PrivateRoute from "./helpers/PrivateRoute";
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+        <div>
+           <ReactKeycloakProvider authClient={keycloak}>
+            <TopNavbar />
+            <div id="layoutSidenav">
+                <SideNavmenu />
+                <div id="layoutSidenav_content">
+                    <Routes>
+                        <Route path="/" element={<SideNavConDash />} />
+                        <Route path="/settings" element={<PrivateRoute>
+                                                             <SideNavConSettings />
+                                                         </PrivateRoute>} />
+                        <Route path="/dashboard" element={<SideNavConDash />} />
+                    </Routes>
+                    <Footer />
+                </div>
+            </div>
+            </ReactKeycloakProvider>
+        </div>
   );
-}
+};
 
 export default App;
+
