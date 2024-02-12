@@ -5,7 +5,6 @@ import App from './App';
 import { AuthProvider } from './components/AuthContext';
 import { BrowserRouter } from 'react-router-dom';
 
-
 ReactDOM.render(
     <BrowserRouter>
         <AuthProvider>
@@ -13,4 +12,3 @@ ReactDOM.render(
         </AuthProvider>
     </BrowserRouter>,
     document.getElementById('root'));
-

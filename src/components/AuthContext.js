@@ -1,27 +1,41 @@
-// AuthContext.js
-import { createContext, useContext, useState } from 'react';
-
-const AuthContext = createContext({
-  isLoggedIn: false,
-});
+import React, { createContext, useEffect, useState } from 'react';
+import Keycloak from 'keycloak-js';
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isLoggedIn, setLoggedIn] = useState(false);
 
-  const login = () => {
-      setLoggedIn(true);
-      console.log("login " + isLoggedIn);
-  }
-  const logout = () => setLoggedIn(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [keycloak, setKeycloak] = useState(null);
 
-  return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+    useEffect(() => {
+
+        const keycloak = new Keycloak({
+            url: "http://localhost:8080",
+            realm: "translatio",
+            clientId: "translatio",
+        });
+        keycloak.init({ onLoad: 'check-sso',
+                        scope: 'openid offline_access',
+                        checkLoginIframe: false})
+                .then((authenticated) => {
+                    console.log(authenticated ? 'User is authenticated' : 'User is not authenticated');
+                    const loginUrl = keycloak.createLoginUrl();
+                    const logoutUrl = keycloak.createLogoutUrl();
+                    console.log('Login URL:', loginUrl);
+                    console.log('Logout URL:', logoutUrl);
+                    setIsLoggedIn(keycloak.authenticated);
+                    setKeycloak(keycloak);
+                })
+                .catch(error => console.error('Keycloak initialization failed:', error));
+
+    },[]);
+
+    return (
+        <AuthContext.Provider value={{ isLoggedIn, keycloak }}>
+          {children}
+        </AuthContext.Provider>
+    );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export default AuthContext;
 
