@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import AuthContext from './AuthContext';
+import API_URLS from '../config';
 
 const SideNavConDash = () => {
 
@@ -28,6 +29,41 @@ const SideNavConDash = () => {
         }, 10000);
         //setShowLanguageModal(false);
         // You can add the selected language to your project state here
+//SHAO 
+/*
+        fetch(API_URLS.host + '/translations', {
+              method: 'PUT',
+              headers: httpHeaders,
+              body: JSON.stringify({ "project": [language],
+                                     "version":  })
+                                     "targetLanguage":  })
+                                     "document":  })
+
+             })
+            .then(response => {
+                console.log("New language Status Code:", response.status);
+                if (response.ok) {
+                    console.log("response ok");
+                } else {
+                    console.log("response not ok");
+                    //throw new Error('Network response was not ok');
+                }
+                return Promise.all([response.json(), response.status]);
+            })
+            .then(([data, http_code]) => { // Destructure the array into data and http_code
+                console.log("=================");
+                console.log("==code " + http_code);
+                console.log(JSON.stringify(data));
+                setInfoMessage(http_code + " " + JSON.stringify(data));
+
+            })
+            .catch(error => {
+                setconfirmMessage("Error: "+ error);
+                 console.log('Error fetching data:', error);
+             });
+*/
+
+
     };
 
 
@@ -49,7 +85,7 @@ const SideNavConDash = () => {
 
     useEffect(() => {
         if (keycloak?.authenticated) {
-            fetch('http://localhost:3000/documents', {
+            fetch(API_URLS.host + '/documents', {
                 headers: {
                     Authorization: `Bearer ${keycloak.token}`
                 }
@@ -171,8 +207,9 @@ const SideNavConDash = () => {
                                                        onChange={handleChooseAll}
                                                        checked={selectAllChecked}
                                                        /></th>
+                                            <th>Title</th>
                                             <th>Name</th>
-                                            <th>Languages</th>
+                                            <th>Translations</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -181,13 +218,16 @@ const SideNavConDash = () => {
                                                        onChange={handleChooseAll}
                                                        checked={selectAllChecked}
                                                        /></th>
+                                            <th>Title</th>
                                             <th>Name</th>
-                                            <th>Languages</th>
+                                            <th>Translations</th>
                                         </tr>
                                     </tfoot>
 
                                     <tbody>
-                                        {documents.map(document => (
+                                        {documents
+                                            .filter(doument => doument.orig_doc_id === null)
+                                            .map(document => (
                                             <tr key={document.doc_id}>
                                               <td><input type="checkbox" 
                                                          checked={selectedDocuments.includes(document.doc_id)}
@@ -195,7 +235,18 @@ const SideNavConDash = () => {
                                               <td><div><a class="nounderline" href={`/document/${document.doc_id}`}>{document.doc_title}</a>
                                                   </div>
                                               </td>
-                                              <td>{document.doc_title}</td>
+                                              <td>{document.doc_name}</td>
+                                              <td>                   
+                                                  {documents
+                                                      .filter(translation => translation.orig_doc_id === document.doc_id)
+                                                      .map(translation => (
+                                                          <div key={translation.translation_id}>
+                                                               <a class="nounderline" href={`/document/${translation.doc_id}`}>{translation.doc_language}</a>
+                                                          </div>
+                                                      ))
+                                                  }
+
+                                              </td>
                                             </tr>
                                         ))}
                                     </tbody>

@@ -21,8 +21,8 @@ export const AuthProvider = ({ children }) => {
                     console.log(authenticated ? 'User is authenticated' : 'User is not authenticated');
                     const loginUrl = keycloak.createLoginUrl();
                     const logoutUrl = keycloak.createLogoutUrl();
-                    console.log('Login URL:', loginUrl);
-                    console.log('Logout URL:', logoutUrl);
+                    //console.log('Login URL:', loginUrl);
+                    //console.log('Logout URL:', logoutUrl);
                     setIsLoggedIn(keycloak.authenticated);
                     setKeycloak(keycloak);
                 })
