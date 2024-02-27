@@ -3,16 +3,37 @@ import AuthContext from './AuthContext';
 import { useParams } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; 
+import API_URLS from '../config';
+
 
 const SideNavConDocument = () => {
 
     const { isLoggedIn, keycloak } = useContext(AuthContext);
+    const [isMarkupVisible, setIsMarkupVisible] = useState(false);
     const textRef = useRef(null);
     const { docId } = useParams();
     const [content, setContent] = useState('');
+    const [contentRaw, setContentRaw] = useState('');
+    const [markupArray, setMarkupArray] = useState([]);
+    const [contentNoMarkup, setContentNoMarkup] = useState('');
     const [title, setTitle] = useState('');
     const [loadingMessage, setLoadingMessage] = useState("Loading...");
 
+    function toFile(htmlContent) {
+      const escapedHTML = htmlContent
+        .replace(/<br>/g, '\n') // Replace <br> tags with newline characters
+        .replace(/&lt;!--/g, '<!--') // Replace escaped HTML comments with their original equivalents
+        .replace(/--&gt;/g, '-->'); 
+      return escapedHTML;
+    }
+
+    function toHtml(storageContent) {
+      const originalHTML = storageContent
+        .replace(/\n/g, '<br>') // Replace newline characters with <br> tags
+        .replace(/<!--/g, '&lt;!--') // Replace HTML comments with their escaped equivalents
+        .replace(/-->/g, '--&gt;');
+      return originalHTML;
+    }
   
     const [selectedMTValue, setSelectedMTValue] = useState('gtranslate');
     const [mtOptions, setMTOptions] = useState([ { name: "Google Translate", id: "gtranslate" },
@@ -25,6 +46,66 @@ const SideNavConDocument = () => {
         console.log("MT Change: " + event.target.value);
         setSelectedMTValue(event.target.value);
     };
+
+    const handleSaveClick = () => {
+        console.log("Save button",JSON.stringify({ "data": toFile(content)}));
+        fetch(API_URLS.host + '/documents/' + docId, {
+            method: 'PUT',
+            headers: {
+                Authorization: `Bearer ${keycloak.token}`,
+                'Content-Type': 'application/json'
+
+            },
+            body: JSON.stringify({ data: toFile(content) })
+
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log("response ok");
+            } else {
+                console.log("response not ok");
+                //throw new Error('Network response was not ok');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching document:', error);
+        });
+
+    }
+
+    const handleMarkupVisbleClick = () => {
+        setIsMarkupVisible(!isMarkupVisible); // Toggle the visibility status
+        if (isMarkupVisible) {
+            let contentBuffer = "";
+            contentBuffer = toFile(content);
+            if (markupArray.length > 0) {
+                markupArray.forEach((match, index) => {
+                    contentBuffer = contentBuffer.replace(`<!-- TMY_TAG_${index} -->`, match);
+                });
+                setContent(toHtml(contentBuffer));
+            }
+        } else {
+            setContentRaw(content);
+            let contentBuffer = "";
+            const fusionPattern = /\[[^\]]+\]/g;
+            let index = -1;
+            let fusionMatches = [];
+            contentBuffer = content.replace(fusionPattern, function(match) {
+                index = index + 1;
+                fusionMatches[index] = match;
+                return `<!-- TMY_TAG_${index} -->`;
+            });
+            contentBuffer = toHtml(contentBuffer);
+            setContent(contentBuffer);
+
+            setContentNoMarkup(contentBuffer);
+            setMarkupArray(fusionMatches);
+            setContentRaw(content);
+
+
+        }
+    };
+
 
     const handleStartTranslation = () => {
         setLoadingMessage("Starting translation on " + title + " using machine translation.");
@@ -56,16 +137,9 @@ const SideNavConDocument = () => {
         })
         .then(response => response.json())
         .then(data => {
-            // Set retrieved data as the content
-            console.log(" data : " + JSON.stringify(data));
-            console.log(" data : " + data[0].doc_content);
-            const formattedData = data[0].doc_content
-              .replace(/\n/g, '<br>') // Replace newline characters with <br> tags
-              .replace(/<!--/g, '&lt;!--') // Replace HTML comments with their escaped equivalents
-              .replace(/-->/g, '--&gt;');
-
-            setContent(formattedData); // Assuming data is in Quill Delta format
-            setTitle(data[0].doc_title); // Assuming data is in Quill Delta format
+            const formattedData = toHtml(data[0].doc_content);
+            setContent(formattedData);
+            setTitle(data[0].doc_title);
         })
         .catch(error => {
             console.error('Error fetching document:', error);
@@ -75,6 +149,7 @@ const SideNavConDocument = () => {
     console.log('document, making restapi call 2');
     const handleChange = (value) => {
       // Handle change of Quill editor content
+      console.log("handle Change: ");
       setContent(value);
     };
 
@@ -147,12 +222,41 @@ const SideNavConDocument = () => {
                       </div>
                       <br />
 
+
                       <div class="w-75 shadow p-3 mb-5 bg-body rounded">
+
+                          <div class="d-flex bd-highlight mb-1">
+                            <div class="p-2 bd-highlight">
+                               <button
+                                  type="button"
+                                  className={`btn btn-light btn-sm ${isMarkupVisible ? 'active' : ''}`}
+                                  onClick={handleMarkupVisbleClick}
+                                  data-bs-toggle="button"
+                                  aria-pressed={isMarkupVisible ? 'true' : 'false'}
+                                >
+                                  {isMarkupVisible ? 'Hide Markup' : 'Hide Markup'}
+                                </button>
+                            </div>
+                            <div class="ms-auto p-2 bd-highlight">
+                                  <button type="button" 
+                                          onClick={handleSaveClick}
+                                          className="btn btn-primary">Save</button>
+                          
+                            </div>
+                          </div>
+
                             <ReactQuill
-                              theme="snow" // Specify the theme ('snow' or 'bubble')
-                              dangerouslySetInnerHTML={{ __html: content }} // Set the content using dangerouslySetInnerHTML
-                              value={content}
-                              onChange={handleChange} />
+                               theme="snow"
+                               value={content}
+                               modules={{
+                                 toolbar: [
+                                   [{ 'header': [1, 2, 3, false] }],
+                                   ['clean']
+                                 ]
+                               }}
+                               onChange={handleChange}
+                            />
+
                           </div>
                       </div>
                       <div class="modal fade" id="applyTranslationModal" tabindex="-1" aria-labelledby="applyTranslationLabel" aria-hidden="true">
