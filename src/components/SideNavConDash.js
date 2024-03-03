@@ -13,6 +13,7 @@ const SideNavConDash = () => {
     const [documents, setDocuments] = useState([]);
     const [selectedDocuments, setSelectedDocuments] = useState([]);
     const [loadingMessage, setLoadingMessage] = useState("Loading...");
+    const [spinnerActive, setSpinnerActive] = useState(false);
 
     const [mtOptions, setMTOptions] = useState([ { name: "Google Translate", id: "gtranslate" },
                                                  { name: "ChatGPT", id: "chatgpt" },
@@ -27,58 +28,82 @@ const SideNavConDash = () => {
     };
 
     const handleChangeProject = (event) => {
+        console.log("change project:", event.target.value);
         setCurrProject(event.target.value);
     };
 
     const handleStartTranslation = () => {
-        let dialogMessage = "";
-            //setLoadingMessage("Starting translation[" + selectedDocuments +"]");
-            //console.log("MT: ",selectedMTValue);
-            //console.log("target lan: ",selectedLanguageValue);
-        selectedDocuments.forEach(element => {
-            const index = documents.findIndex(document => document.doc_id === element);
-            console.log("index=",index);
-            console.log("Processing ... ", documents[index].doc_title);
-            console.log("Processing ... ", documents[index].ver_name);
-            console.log("Processing ... ", documents[index].proj_name);
-            dialogMessage = dialogMessage + "Translating " + documents[index].doc_title + " to: " + selectedLanguageValue + "\n";
-            dialogMessage = dialogMessage + "Project: " + documents[index].proj_name + " version: " + documents[index].ver_name + "\n";
-            setLoadingMessage(dialogMessage);
-            fetch(API_URLS.host + '/translations', {
-                  method: 'PUT',
-                  headers: httpHeaders,
-                  body: JSON.stringify({ "project": documents[index].proj_name,
-                                         "version": documents[index].ver_name,
-                                         "targetLanguage": selectedLanguageValue,
-                                         "document": documents[index].doc_title })
-                 })
-                .then(response => {
-                    console.log("doing translation:", response.status);
-                    if (response.ok) {
-                        console.log("response ok");
-                    } else {
-                        console.log("response not ok");
-                        //throw new Error('Network response was not ok');
-                    }
-                    return Promise.all([response.json(), response.status]);
-                })
-                .then(([data, http_code]) => { // Destructure the array into data and http_code
-                    console.log("=================");
-                    console.log("==code " + http_code);
-                    console.log(JSON.stringify(data));
-                    dialogMessage = dialogMessage + http_code + " " + JSON.stringify(data) + "\n";
-                    setLoadingMessage(dialogMessage);
-    
-                })
-                .catch(error => {
-                    dialogMessage = dialogMessage + "Error: " + error + "\n";
-                    //setconfirmMessage("Error: "+ error);
-                    setLoadingMessage(dialogMessage);
-                    console.log('Error fetching data:', error);
-                 });
-        });
-        dialogMessage = dialogMessage + "\nDone";
+        setSpinnerActive(true);
+        let dialogMessage = "Number of documents to be processed: " + selectedDocuments.length + "\n" +
+                            "Target language: " + selectedLanguageValue + "\n" +
+                            "Engine: " + selectedMTValue + "\n";
         setLoadingMessage(dialogMessage);
+        console.log("dialogMessage: ", dialogMessage);
+        const promises = selectedDocuments.map(element => {
+            const index = documents.findIndex(document => document.doc_id === element);
+            const document = documents[index];
+            console.log("Processing ... ", document.doc_title);
+            console.log("Processing ... ", document.ver_name);
+            console.log("Processing ... ", document.proj_name);
+            //const dialogMessage = `Translating ${document.doc_title} to: ${selectedLanguageValue}\nProject: ${document.proj_name} version: ${document.ver_name}\n`;
+        
+            //setLoadingMessage(prevMessage => prevMessage + dialogMessage);
+        
+            return fetch(API_URLS.host + '/translations', {
+                method: 'PUT',
+                headers: httpHeaders,
+                body: JSON.stringify({
+                    project: document.proj_name,
+                    engine: selectedMTValue,
+                    targetLanguage: selectedLanguageValue,
+                    document: document.doc_title
+                })
+            })
+            .then(response => {
+                console.log("Doing translation:", response.status);
+                if (response.ok) {
+                    console.log("Response ok after calling for translation");
+                }
+                if (!response.ok) {
+                    console.log("Response not ok");
+                    // You may handle non-ok responses differently here
+                }
+                return Promise.all([response.json(), response.status]);
+            })
+            .then(([data, http_code]) => {
+                console.log("=================");
+                console.log("Code " + http_code);
+                console.log(JSON.stringify(data));
+    //console.log("dialogMessage: ", dialogMessage);
+                dialogMessage = dialogMessage +  http_code + " " + JSON.stringify(data) + "\n";
+    //console.log("dialogMessage: ", dialogMessage);
+                setLoadingMessage(dialogMessage);
+            })
+            .catch(error => {
+                const errorMessage = `Error: ${error}\n`;
+                setLoadingMessage(prevMessage => prevMessage + errorMessage);
+                console.log('Error fetching data:', error);
+            });
+        });
+        
+        Promise.all(promises)
+            .then(() => {
+                //setLoadingMessage(prevMessage => prevMessage + "\nFinished All");
+            })
+            .catch(error => {
+                console.log('Error handling requests:', error);
+                dialogMessage = dialogMessage + "Error: " + error + "\n";
+                setLoadingMessage(dialogMessage);
+                console.log('Error fetching data:', error);
+                throw error;
+            })
+            .finally(() => {
+                setSpinnerActive(false);
+            });
+
+
+        //dialogMessage = dialogMessage + "\nDone";
+        //setLoadingMessage(dialogMessage);
 
     };
 
@@ -125,6 +150,9 @@ const SideNavConDash = () => {
                 })
                 .then(data => {
                      setProjects(data);
+                     if (data.length > 0) {
+                         setCurrProject(data[0].proj_name);
+                     }
                      console.log('setting projects data done',JSON.stringify(projects, null, 2));
                 })
                 .catch(error => {
@@ -157,6 +185,9 @@ const SideNavConDash = () => {
                           console.log('Getting user languages');
                           console.log("versions=",JSON.stringify(data, null, 2));
                           setUserLanguages(data);
+                          if (data.length > 0) {
+                              setSelectedLanguageValue(data[0].localeId)
+                          }
                       })
                      .catch(error => {
                           console.error('Error fetching data:', error);
@@ -212,15 +243,17 @@ const SideNavConDash = () => {
                         </ol>
 
                         <div class="row">
-                            <div class="col-xl-3 col-md-6">
-                                <select class="form-select form-select-sm" aria-label=".form-select-sm example" onChange={handleChangeProject}>
-                                  <option selected>Choose Project ...</option>
-                                  {projects.map((project, projectIndex) => ( 
-                                      <option key={project.proj_name} value={project.proj_name}>{project.proj_name}</option>
-                                  ))}
+                            <div class="col-xl-3 col-md-6 d-flex align-items-center">
+                                <span class="me-2">Project:</span>
+                                <select className="form-select form-select-sm" aria-label=".form-select-sm example" onChange={handleChangeProject} value={currProject}>
+                                    <option disabled selected>Choose Project ...</option>
+                                    {projects.map((project, projectIndex) => (
+                                        <option key={project.proj_name} value={project.proj_name}>{project.proj_name}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
+
                         <br />
                         <div class="row">
                             <div class="col-auto">
@@ -347,13 +380,8 @@ const SideNavConDash = () => {
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                           </div>
                           <div className="modal-body">
+                             {spinnerActive && <div className="spinner-border text-primary" role="status"></div>}
                              <br />
-                             {!loadingMessage.endsWith("Done") && (
-                                 <div>
-                                 <div class="spinner-border text-primary" role="status"></div>
-                                 <br />
-                                 </div>
-                             )}
                              {loadingMessage.split('\n').map((message, index) => (
                              <div key={index}>{message}</div>
                              ))}

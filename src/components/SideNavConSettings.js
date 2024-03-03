@@ -39,21 +39,6 @@ const SideNavConSettings = () => {
                   'X-Auth-User': loginId,
                   'X-Auth-Token': loginId,
                 };
-                 fetch(API_URLS.host + '/versions', {
-                           method: 'GET',
-                           headers: headers, })
-                     .then(response => {
-                         if (!response.ok) {
-                             throw new Error('Network response was not ok'); }
-                         return response.json(); })
-                     .then(data => {
-                          console.log('Getting all versions');
-                          console.log("versions=",JSON.stringify(data, null, 2));
-                          setProjectVersions(data);
-                      })
-                     .catch(error => {
-                          console.error('Error fetching data:', error);
-                     });
 
                  fetch(API_URLS.host + '/project/languages', {
                            method: 'GET',
@@ -139,23 +124,50 @@ const SideNavConSettings = () => {
         // You can add the selected language to your project state here
     };
 
-const handleNewActiviationKey = (projectIndex) => {
-    console.log("new activate key ", projects[projectIndex].proj_name);
-    console.log("new activate uuid ", btoa(JSON.stringify(({
-        s: "localhost:3000",
-        p: projects[projectIndex].proj_name,
-        a: uuidv4().replace(/-/g, '').substring(0, 8)
-    }))));
+    const handleNewActiviationKey = (projectIndex) => {
 
-   let updatedProjects = [...projects];
-   updatedProjects[projectIndex].proj_api = btoa(JSON.stringify(({
-        s: "localhost:3000",
-        p: projects[projectIndex].proj_name,
-        a: uuidv4().replace(/-/g, '').substring(0, 8)
-    })));
-    setProjects(updatedProjects);
+        const apiKey = uuidv4().replace(/-/g, '').substring(0, 10)
 
-};
+        let updatedProjects = [...projects];
+        updatedProjects[projectIndex].proj_api = apiKey;
+        updatedProjects[projectIndex].proj_activation = btoa(JSON.stringify(({
+            s: "localhost:3000",
+            p: projects[projectIndex].proj_name,
+            a: apiKey
+        })));
+        setProjects(updatedProjects);
+
+        fetch(API_URLS.host + '/project/' + projects[projectIndex].proj_name + '/activationCode', {
+              method: 'PUT',
+              headers: httpHeaders,
+              body: JSON.stringify({ "activationCode": projects[projectIndex].proj_activation,
+                                     "apiKey": apiKey,
+                                     "proj_id": projects[projectIndex].proj_id })
+             })
+            .then(response => {
+                console.log("New language Status Code:", response.status);
+                if (response.ok) {
+                    console.log("response ok");
+                } else {
+                    console.log("response not ok");
+                    //throw new Error('Network response was not ok');
+                }
+                return Promise.all([response.json(), response.status]);
+            })
+            .then(([data, http_code]) => { // Destructure the array into data and http_code
+                console.log("=================");
+                console.log("==code " + http_code);
+                console.log(JSON.stringify(data));
+                setInfoMessage(http_code + " " + JSON.stringify(data));
+
+            })
+            .catch(error => {
+                setconfirmMessage("Error: "+ error);
+                 console.log('Error fetching data:', error);
+             });
+
+
+    };
 
 
     const handleDeleteVersion = (projectIndex, versionIndex) => {
@@ -316,15 +328,31 @@ console.log("delete languages ", projectName, languageName);
                 return Promise.all([response.json(), response.status]);
             })
             .then(([data, http_code]) => { // Destructure the array into data and http_code
-                console.log("=================");
-                console.log("==code " + http_code);
+                console.log("creating project", http_code);
                 console.log(JSON.stringify(data));
                 setconfirmMessage(http_code + " " + JSON.stringify(data));
+
+                fetch(API_URLS.host + '/projects', {
+                          method: 'GET',
+                          headers: httpHeaders})
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok'); }
+                        return response.json();
+                    })
+                    .then(data => {
+                         setProjects(data);
+                         console.log('getting projects data again',JSON.stringify(projects, null, 2));
+                    })
+                    .catch(error => {
+                         console.error('Error fetching data:', error); });
+    
             })
             .catch(error => {
                 setconfirmMessage("Error: "+ error);
                  console.log('Error fetching data:', error);
              });
+
     };
 
 
@@ -435,8 +463,8 @@ console.log("delete languages ", projectName, languageName);
             const headers = {
               Authorization: `Bearer ${accessToken}`,
               'Content-Type': 'application/json',
-              'X-Auth-User': loginId,
-              'X-Auth-Token': loginId,
+              //'X-Auth-User': loginId,
+              //'X-Auth-Token': loginId,
             };
 
             setHttpHeaders(headers);
@@ -638,14 +666,14 @@ console.log("delete languages ", projectName, languageName);
 
                                           <h5 class="card-title">Project Activation Code</h5>
                                                 <div className="col d-inline border">
-                                                  {project.proj_api}
+                                                  {project.proj_activation}
                                                 </div>
                                                 <div className="col-auto">
                                                   <button type="button" 
                                                           onClick={() => handleNewActiviationKey(projectIndex)}
                                                           className="btn btn-light btn-sm" aria-label="generateNew">Generate New</button>  
                                                   <button type="button"
-                                                          onClick={() => copyActivationToClipboard(project.proj_api)}
+                                                          onClick={() => copyActivationToClipboard(project.proj_activation)}
                                                           className="btn btn-light btn-sm mx-1">Copy</button>
                                                 </div>
 
