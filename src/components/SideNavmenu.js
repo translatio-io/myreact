@@ -1,6 +1,7 @@
 // components/Home.js
 import React, { useContext } from 'react';
 import AuthContext from './AuthContext';
+import '../App.css';
 
 const SideNavmenu = () => {
 
@@ -9,7 +10,7 @@ const SideNavmenu = () => {
     if (keycloak === null) {
         return (
             <div id="layoutSidenav_nav">
-                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                <nav class="sb-sidenav accordion sb-sidenav-dark bg-translatio" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Core</div>
@@ -35,7 +36,7 @@ const SideNavmenu = () => {
         if (isLoggedIn) {
             return (
             <div id="layoutSidenav_nav">
-                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                <nav class="sb-sidenav accordion sb-sidenav-dark bg-translatio" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Core</div>
@@ -63,7 +64,7 @@ const SideNavmenu = () => {
         } else {
             return (
             <div id="layoutSidenav_nav">
-                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                <nav class="sb-sidenav accordion sb-sidenav-dark bg-translatio" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Core</div>

@@ -1,6 +1,7 @@
 // components/Home.js
 import React, { useContext } from 'react';
 import AuthContext from './AuthContext';
+import '../App.css';
 
 const TopNavbar = () => {
 
@@ -8,8 +9,8 @@ const TopNavbar = () => {
 
     if (keycloak === null) {
         return (
-        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-            <a class="navbar-brand ps-3" href="/">Translatio</a>
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-translatio">
+            <a class="navbar-brand ps-3" href="/"><img src="./Translatio13.svg" alt="Translatio" style={{ width: '150px', height: 'auto' }} /></a>
             <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
             <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
                 <div class="input-group">
@@ -31,8 +32,8 @@ const TopNavbar = () => {
         console.log('Full Name:', fullName);
         if (isLoggedIn) {
             return (
-        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-            <a class="navbar-brand ps-3" href="/">Translatio</a>
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-translatio">
+            <a class="navbar-brand ps-3" href="/"><img src="./Translatio13.svg" alt="Translatio" style={{ width: '150px', height: 'auto' }}/></a>
             <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
             <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
                 <div class="input-group">
@@ -55,8 +56,8 @@ const TopNavbar = () => {
           );
         } else {
             return (
-        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-            <a class="navbar-brand ps-3" href="/">Translatio</a>
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-translatio">
+            <a class="navbar-brand ps-3" href="/"><img src="./Translatio13.svg" alt="Translatio" style={{ width: '150px', height: 'auto' }}/></a>
             <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="/"><i class="fas fa-bars"></i></button>
             <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
                 <div class="input-group">

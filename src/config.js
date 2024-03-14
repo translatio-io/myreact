@@ -1,6 +1,6 @@
 const API_URLS = {
-  host: 'https://api2.translatio.io',
-  authUrl: "https://auth.translatio.io",
+  host: 'http://localhost:9090',
+  authUrl: "http://localhost:8080",
   authRealm: "translatio",
   authClientId: "translatio",
 };
