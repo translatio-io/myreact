@@ -475,7 +475,7 @@ console.log("delete languages ", projectName, languageName);
                  })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        throw new Error('getting locales, Network response was not ok');
                     }
                     return response.json(); })
                 .then(data => {
@@ -489,7 +489,7 @@ console.log("delete languages ", projectName, languageName);
                       headers: headers, })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok'); }
+                        throw new Error('getting project, Network response was not ok'); }
                     return response.json(); 
                 })
                 .then(data => {
@@ -630,7 +630,7 @@ console.log("delete languages ", projectName, languageName);
 
                         {activeTab === 'project' &&
 
-                            <div>
+                            <div> 
                               <br />
                               {projects.map((project, projectIndex) => (
                                   <div class="w-50 shadow p-3 mb-5 bg-body rounded">
@@ -699,36 +699,8 @@ console.log("delete languages ", projectName, languageName);
                                               </div> </div> </div> 
                                           </div>
 
-                                          <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmLabel" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                              <div class="modal-content">
-                                                <div class="modal-body">
-                                                  {confirmMessage}
-                                                </div>
-                                                <div class="modal-footer">
-                                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                  <button type="button" 
-                                                          class="btn btn-primary" 
-                                                          data-bs-dismiss="modal"
-                                                          onClick={() => handleConfirmYes()}>Confirm</button>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </div>
 
 
-                                          <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoLabel" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                              <div class="modal-content">
-                                                <div class="modal-body">
-                                                  {infoMessage}
-                                                </div>
-                                                <div class="modal-footer">
-                                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </div>
 
 
                                           <br />
@@ -759,6 +731,35 @@ console.log("delete languages ", projectName, languageName);
                                   </div>
                                 </div>
                              </div>
+                             <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmLabel" aria-hidden="true">
+                              <div class="modal-dialog">
+                                <div class="modal-content">
+                                  <div class="modal-body">
+                                    {confirmMessage}
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" 
+                                            class="btn btn-primary" 
+                                            data-bs-dismiss="modal"
+                                            onClick={() => handleConfirmYes()}>Confirm</button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoLabel" aria-hidden="true">
+                              <div class="modal-dialog">
+                                <div class="modal-content">
+                                  <div class="modal-body">
+                                    {infoMessage}
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 
 
 
