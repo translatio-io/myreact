@@ -364,16 +364,9 @@ console.log("delete languages ", projectName, languageName);
 
     const handleRemoveProject = (index) => {
         console.log("handle remove Project" + index)
-        const headers = {
-          //Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'X-Auth-User': 'translatio',
-          'X-Auth-Token': 'translatio',
-        };
-
         fetch(API_URLS.host + '/rest/projects/p/' + projects[index].proj_name, {
                   method: 'DELETE',
-                  headers: headers
+                  headers: httpHeaders
              })
             .then(response => {
                 console.log("Status Code:", response.status);
